@@ -22,6 +22,7 @@ public class DBUtil {
 
 		}
 	}
+	
 
 	public static List<String> selectActiveLink(Connection conn, String query) throws SQLException {
 		try (PreparedStatement stmt = conn.prepareStatement(query);) {
@@ -34,7 +35,34 @@ public class DBUtil {
 			return resultList;
 
 		}
-	};
+	}
+	
+	//Select links to crawl for images and files.
+	public static List<String> selectLinks(Connection conn, String query) throws SQLException {
+		try (PreparedStatement stmt = conn.prepareStatement(query);) {
+			ResultSet results = stmt.executeQuery();
+			List<String> resultList = new ArrayList<String>();
+			while(results!=null && results.next()){
+				resultList.add(results.getString("links"));
+				//resultList.add(results.getString("id"));
+			}
+			return resultList;
+
+		}
+	}
+	
+
+	//insert images and links to the table for reference
+	public static void insertImagesLinks(Connection conn, String query, String[] args)
+			throws SQLException {
+		try (PreparedStatement stmt = conn.prepareStatement(query);) {
+			for (int i = 0; i < args.length; i++) {
+				stmt.setString(i+1, args[i]);
+			}
+			stmt.executeUpdate();
+
+		}
+	}
 
 	public static boolean linkAlreadyExists(Connection conn, String query,String link) throws SQLException {
 		try (PreparedStatement stmt = conn.prepareStatement(query);) {
@@ -48,13 +76,13 @@ public class DBUtil {
 			return false;
 
 		}
-	};
+	}
 	public static void updateLink(Connection conn, String query,String linkId) throws SQLException {
 		try (PreparedStatement stmt = conn.prepareStatement(query);) {
 			stmt.setString(1, linkId);
 			stmt.executeUpdate();
 		}
-	};
+	}
 
 	public static void createTables() throws SQLException {
 		try (Statement stmt = conn.createStatement()) {
