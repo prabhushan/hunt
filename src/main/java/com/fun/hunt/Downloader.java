@@ -1,6 +1,7 @@
 package com.fun.hunt;
 
 import java.io.BufferedOutputStream;
+import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -18,6 +19,10 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 import com.fun.hunt.utils.DBUtil;
+import com.gargoylesoftware.htmlunit.BrowserVersion;
+import com.gargoylesoftware.htmlunit.WebClient;
+import com.gargoylesoftware.htmlunit.html.HtmlPage;
+import com.gargoylesoftware.htmlunit.javascript.background.JavaScriptJobManager;
 
 public class Downloader {
 
@@ -30,8 +35,45 @@ public class Downloader {
 
 	public static void main(String... strings) throws Exception {
 		Downloader downloader = new Downloader();
-		downloader.loadImages();
+		//downloader.loadImages();
+		//downloader.loadFiles();
+		downloader.test();
 		log.info("Files Downloaded");
+	}
+
+	private void test() throws IOException, InterruptedException {
+		WebClient webClient = new WebClient(BrowserVersion.FIREFOX_38);
+		int i = webClient.waitForBackgroundJavaScript(1000);
+		//Page page = webClient.getPage("http://prod-intranet/portal/whos-who/new-employee/");
+	
+		HtmlPage page = null;
+		try {
+		    page = webClient.getPage("http://prod-intranet/portal/drfirst-events/");
+		} catch (Exception e) {
+		    System.out.println("Get page error");
+		}
+		JavaScriptJobManager manager = page.getEnclosingWindow().getJobManager();
+		while (manager.getJobCount() > 0) {
+		    Thread.sleep(1000);
+		}
+//		File file = new File("D:\\cleanup\\sample1.html");
+//		FileOutputStream stream = new FileOutputStream(file);
+//		stream.write(page.asXml().getBytes());
+//		stream.close();
+		//System.out.println(page.asXml());
+		//return page;
+        log.info("Load Content ==>");
+        Document doc = Jsoup.parse(page.getWebResponse().getContentAsString());
+		//Document doc = Jsoup.connect("http://prod-intranet/portal/whos-who/new-employee/#asf_animated_modal").timeout(20000).get();
+		//Elements ele = doc.select("div.scroll-top-wrap");
+		//Elements ele =doc.getElementsByTag("div");
+		Elements ele = doc.select("div[style^=background-image:]");
+		for (Element element : ele) {
+			element.attr("style");
+			element.cssSelector();
+			System.out.println(element.html());
+		}
+		
 	}
 
 	private void loadImages() throws Exception {
@@ -47,7 +89,7 @@ public class Downloader {
 
 				// Get all elements with img tag ,
 				Elements img = doc.getElementsByTag("img");
-
+				
 				for (Element el : img) {
 
 					// for each element get the srs url
@@ -69,7 +111,16 @@ public class Downloader {
 	}
 
 	private void loadFiles() throws Exception {
-		DBUtil.selectLinks(conn, SELECT_FILE_LINKS);
+		List<String> sourceURL = DBUtil.selectLinks(conn, SELECT_FILE_LINKS);
+		log.info("Total Count " + sourceURL.size());
+		for (String fileURL : sourceURL) {
+			try {
+				getFiles("FILE URL", fileURL);
+				insertFiles("FILE URL", fileURL);
+			} catch (Exception ex) {
+				log.severe("Error Occurred ==> " + fileURL + "===" + ExceptionUtils.getStackTrace(ex));
+			}
+		}
 	}
 
 	private void insertFiles(String sourcelink, String fileName)
