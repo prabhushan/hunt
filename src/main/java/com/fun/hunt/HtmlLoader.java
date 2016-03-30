@@ -19,7 +19,7 @@ public class HtmlLoader {
 	private static final String folderPath = "D:\\cleanup\\huntedfiles\\";
 
 	public static String getHTMLSource(String url) throws Exception{
-		try(WebClient webClient = new WebClient(BrowserVersion.FIREFOX_38)){
+		try(WebClient webClient = new WebClient(BrowserVersion.CHROME)){
 			webClient.waitForBackgroundJavaScript(1000);
 			//Page page = webClient.getPage("http://prod-intranet/portal/whos-who/new-employee/");
 		
@@ -30,7 +30,14 @@ public class HtmlLoader {
 			    log.severe("Get page error ==>" + ExceptionUtils.getStackTrace(e));
 			}
 			JavaScriptJobManager manager = page.getEnclosingWindow().getJobManager();
+			int iLoop = 0;
 			while (manager.getJobCount() > 0) {
+				if(iLoop > 50){
+					break;
+				}
+				else{
+					iLoop++;
+				}
 			    Thread.sleep(1000);
 			}
 			String source = page.asXml();
