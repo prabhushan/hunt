@@ -48,7 +48,7 @@ public class Downloader {
 	
 		HtmlPage page = null;
 		try {
-		    page = webClient.getPage("http://prod-intranet/portal/drfirst-events/");
+		    page = webClient.getPage("http://prod-intranet/portal/whos-who/new-employee/");
 		} catch (Exception e) {
 		    System.out.println("Get page error");
 		}
@@ -56,10 +56,10 @@ public class Downloader {
 		while (manager.getJobCount() > 0) {
 		    Thread.sleep(1000);
 		}
-//		File file = new File("D:\\cleanup\\sample1.html");
-//		FileOutputStream stream = new FileOutputStream(file);
-//		stream.write(page.asXml().getBytes());
-//		stream.close();
+		File file = new File("D:\\cleanup\\sample3.html");
+		FileOutputStream stream = new FileOutputStream(file);
+		stream.write(page.asXml().getBytes());
+		stream.close();
 		//System.out.println(page.asXml());
 		//return page;
         log.info("Load Content ==>");

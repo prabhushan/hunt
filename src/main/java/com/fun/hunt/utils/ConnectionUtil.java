@@ -12,7 +12,7 @@ public class ConnectionUtil {
 	private ConnectionUtil() {
 		try {
 			Class.forName("org.h2.Driver");
-			conn = DriverManager.getConnection("jdbc:h2:" + "D:\\cleanup\\indexcreater\\" + "reference");
+			conn = DriverManager.getConnection("jdbc:h2:" + "D:\\cleanup\\indexcreaternew\\" + "reference");
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

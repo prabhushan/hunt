@@ -34,37 +34,37 @@ public class IndexBuilder {
 	private static final String UPDATE_ERROR_LINKS = "update links set isactive ='error' where id = (?)";
 
 	private static Connection conn = DBUtil.conn;
+
 	static {
 
 		try {
 			loadFilterUrls();
 			if (initialLoad) {
 				DBUtil.createTables();
-				DBUtil.insertLinks(conn, INSERT_LINK_SQL, new String[] { "1",
-						prefix, prefix, "y" });
+				DBUtil.insertLinks(conn, INSERT_LINK_SQL, new String[] { "1", prefix, prefix, "y" });
 			}
 
 		} catch (Exception e) {
-			log.severe("Error occured ==>"+ExceptionUtils.getStackTrace(e));
+			log.severe("Error occured ==>" + ExceptionUtils.getStackTrace(e));
 		}
 	}
 
+	/*public static void main(String...strings) throws Exception{
+		loadHtmlLinks("http://prod-intranet/portal/whos-who/new-employee/", "100");
+	}*/
 	public static void main(String[] args) throws Exception {
 		log.info("Initial Load");
 		while (true) {
-			List<String> resultList = DBUtil.selectActiveLink(conn,
-					SELECT_ACTIVE_LINKS);
+			List<String> resultList = DBUtil.selectActiveLink(conn, SELECT_ACTIVE_LINKS);
 			if (resultList != null && resultList.isEmpty()) {
 				break;
 			}
-			try{
-				loadHtmlLinks(resultList.get(0), resultList.get(1));	
-			}
-			catch(Exception ex){
-				log.severe("Error Occured ===>"+resultList.get(0)+"==="+ExceptionUtils.getStackTrace(ex));
+			try {
+				loadHtmlLinks(resultList.get(0), resultList.get(1));
+			} catch (Exception ex) {
+				log.severe("Error Occured ===>" + resultList.get(0) + "===" + ExceptionUtils.getStackTrace(ex));
 				DBUtil.updateLink(conn, UPDATE_ERROR_LINKS, resultList.get(1));
 			}
-			
 
 		}
 
@@ -73,12 +73,14 @@ public class IndexBuilder {
 		// loadHtmlLinks(prefix);
 	}
 
-	private static void loadHtmlLinks(String url, String linkId)
-			throws Exception {
-		if(StringUtils.isBlank(url)){
+	private static void loadHtmlLinks(String url, String linkId) throws Exception {
+		if (StringUtils.isBlank(url)) {
 			return;
 		}
-		Document doc = Jsoup.connect(url).timeout(20000).get();
+		url = StringUtils.remove(url, "?comments=true");
+		String htmlSource = HtmlLoader.getHTMLSource(url);
+		// Document doc = Jsoup.connect(url).timeout(20000).get();
+		Document doc = Jsoup.parse(htmlSource);
 		Elements links = doc.select("a[href]");
 		Set<String> uniqueSet = new HashSet<String>();
 		for (Element link : links) {
@@ -87,10 +89,9 @@ public class IndexBuilder {
 			}
 		}
 		for (String href : uniqueSet) {
-			if (!DBUtil.linkAlreadyExists(conn, SELECT_LINKS_ALREADY_EXISTS,
-					StringUtils.trim(href))) {
-				DBUtil.insertLinks(conn, INSERT_LINK_SQL, new String[] {
-						UUID.randomUUID().toString(), StringUtils.trim(url), StringUtils.trim(href), "y" });
+			if (!DBUtil.linkAlreadyExists(conn, SELECT_LINKS_ALREADY_EXISTS, StringUtils.trim(href))) {
+				DBUtil.insertLinks(conn, INSERT_LINK_SQL, new String[] { UUID.randomUUID().toString(),
+						StringUtils.trim(url), StringUtils.trim(href), "y" });
 			}
 
 		}
@@ -112,8 +113,8 @@ public class IndexBuilder {
 				return true;
 			}
 		}
-		
-		if(!StringUtils.startsWithIgnoreCase(strLink, prefix)){
+
+		if (!StringUtils.startsWithIgnoreCase(strLink, prefix)) {
 			return true;
 		}
 
